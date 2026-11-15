@@ -78,8 +78,31 @@ var e,t,i="function"==typeof Symbol?Symbol:{},n=i.iterator||"@@iterator",a=i.toS
     tg.addEventListener('touchstart',toggle,{passive:false});tg.addEventListener('click',toggle);
     btn.appendChild(panel);btn.appendChild(tg);document.body.appendChild(btn);
   }
-  if(navigator.maxTouchPoints>0){
-    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensureUI);
-    setTimeout(ensureUI,1500);
+  // Sanal kumanda dugmesi yalnizca gercek bir dokunma olunca gorunur (TV'de hic gorunmez)
+})();
+
+;(function(){
+  if(window.__umitIntro)return;window.__umitIntro=true;
+  var pending=false,last=0;
+  function show(){
+    var now=Date.now();if(now-last<4000)return;last=now;
+    var old=document.getElementById('umit-intro');if(old)old.remove();
+    if(!document.getElementById('umit-intro-css')){
+      var st=document.createElement('style');st.id='umit-intro-css';
+      st.textContent='@keyframes umitIn{0%{opacity:0;transform:translateX(-60px) scale(.9)}14%{opacity:1;transform:none}72%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-24px) scale(1.06)}}';
+      document.head.appendChild(st);
+    }
+    var d=document.createElement('div');d.id='umit-intro';
+    d.style.cssText='position:fixed;top:6%;left:4%;z-index:2147483646;pointer-events:none;font:900 4.2vw/1 Arial,Helvetica,sans-serif;letter-spacing:2px;color:#fff;text-shadow:0 0 14px #f00,0 0 34px #a00,2px 2px 6px #000;animation:umitIn 3.2s ease forwards;';
+    d.innerHTML='<span style="color:#ff1a1a">\u00dcmit</span>Tube';
+    document.body.appendChild(d);
+    setTimeout(function(){if(d.parentNode)d.parentNode.removeChild(d);},3400);
   }
+  document.addEventListener('loadstart',function(e){if(e.target&&e.target.tagName==='VIDEO')pending=true;},true);
+  document.addEventListener('playing',function(e){
+    var v=e.target;
+    if(!pending||!v||v.tagName!=='VIDEO')return;
+    var r=v.getBoundingClientRect();
+    if(r.width>=window.innerWidth*0.6){pending=false;show();}
+  },true);
 })();
