@@ -83,14 +83,15 @@ var e,t,i="function"==typeof Symbol?Symbol:{},n=i.iterator||"@@iterator",a=i.toS
 
 ;(function(){
   if(window.__umitIntro)return;window.__umitIntro=true;
-  var pending=false,last=0;
+  var last=0,lastId=null,pending=false;
   function show(){
-    var now=Date.now();if(now-last<4000)return;last=now;
+    var now=Date.now();if(now-last<3000)return;last=now;
+    if(!document.body)return;
     var old=document.getElementById('umit-intro');if(old)old.remove();
     if(!document.getElementById('umit-intro-css')){
       var st=document.createElement('style');st.id='umit-intro-css';
       st.textContent='@keyframes umitIn{0%{opacity:0;transform:translateX(-60px) scale(.9)}14%{opacity:1;transform:none}72%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-24px) scale(1.06)}}';
-      document.head.appendChild(st);
+      (document.head||document.documentElement).appendChild(st);
     }
     var d=document.createElement('div');d.id='umit-intro';
     d.style.cssText='position:fixed;top:6%;left:4%;z-index:2147483646;pointer-events:none;font:900 4.2vw/1 Arial,Helvetica,sans-serif;letter-spacing:2px;color:#fff;text-shadow:0 0 14px #f00,0 0 34px #a00,2px 2px 6px #000;animation:umitIn 3.2s ease forwards;';
@@ -98,11 +99,22 @@ var e,t,i="function"==typeof Symbol?Symbol:{},n=i.iterator||"@@iterator",a=i.toS
     document.body.appendChild(d);
     setTimeout(function(){if(d.parentNode)d.parentNode.removeChild(d);},3400);
   }
+  // 1) Adres degisince (yeni video ID) goster
+  function check(){
+    var m=(location.href||'').match(/[?&]v=([\w-]{6,})/);
+    var id=m?m[1]:null;
+    if(id&&id!==lastId){lastId=id;show();}
+    else if(!id){lastId=null;}
+  }
+  setInterval(check,400);
+  // 2) Yedek: video olaylari (adreste ID yoksa)
   document.addEventListener('loadstart',function(e){if(e.target&&e.target.tagName==='VIDEO')pending=true;},true);
   document.addEventListener('playing',function(e){
     var v=e.target;
     if(!pending||!v||v.tagName!=='VIDEO')return;
+    pending=false;
     var r=v.getBoundingClientRect();
-    if(r.width>=window.innerWidth*0.6){pending=false;show();}
+    if(!v.muted||r.width>=window.innerWidth*0.6)show();
   },true);
+  window.__umitIntroTest=show;
 })();
